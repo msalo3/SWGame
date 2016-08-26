@@ -93,6 +93,9 @@
 	var stoneImage = new Image();
 	stoneImage.src = "./images/stone.png";
 
+	var turkeyImage = new Image();
+	turkeyImage.src = "./images/turkey.png";
+
 	var lens = new Image();
 	lens.src = "./images/broken_lens.jpg"
 
@@ -117,8 +120,12 @@
 	var border = new Image();
 	border.src = "./images/border.png"
 
+	var hole = new Image();
+	hole.src = "./images/hole.png"
 
+	var fin = false;
 	var timerOn;
+	var wait = 1000;
 	var mapLength;
 	var gameMap = new Array(mapLength);
  	var playerCell = {};
@@ -139,9 +146,9 @@
   		[1,0,1,1,0,0,0,0,0,0,0,1,3,1,0,0,0,0,0,1],
   		[1,0,1,1,0,0,0,4,0,0,0,1,1,1,0,0,0,0,0,1],
   		[1,0,1,1,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,1],
-  		[1,0,1,1,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,1],
-  		[1,0,1,1,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,1],
-  		[1,4,1,1,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,1],
+  		[1,0,1,1,0,0,0,0,0,0,0,1,1,1,0,0,0,0,1,1],
+  		[1,0,1,1,0,0,0,0,0,0,0,1,1,1,0,0,0,0,5,6],
+  		[1,4,1,1,0,0,0,0,0,0,0,1,1,1,0,0,0,0,1,1],
   		[1,3,1,1,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,1],
   		[1,0,1,1,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,1],
   		[1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
@@ -167,9 +174,10 @@
   	function setUpGame(aMap) {
   		mapLength = aMap.length;
   		playerObject = {
+  			hasBite: false,
   			chestTotal: 0,
   			chestAmt: 0,
-  			hasBite: false
+  			hasSmash: false
   		};
   		for(var k=0; k<mapLength; k++){
 	 		gameMap[k] = new Array(mapLength);
@@ -181,6 +189,7 @@
 			  		hasPlayer: false,
 			  		hasStone: false,
 			  		hasTurkey: false,
+			  		hasHole: false,
 			  		isVisible: true
 				};
 	 		}
@@ -211,6 +220,8 @@
 					gameMap[i][j].hasTurkey = true;
 					gameMap[i][j].isWalkable = false;
 				}
+				else if(aMap[i][j] == 6){
+					gameMap[i][j].hasHole = true;				}
 				else{
 					gameMap[i][j].isWalkable = true;
 					gameMap[i][j].hasPlayer = false;
@@ -251,6 +262,9 @@
 				}
 				if(g.hasTurkey){
 					ctx.drawImage(turkeyImage, drawPoint.x, drawPoint.y);
+				}
+				if(g.hasHole){
+					ctx.drawImage(hole, drawPoint.x, drawPoint.y);
 				}
 				drawPoint.x += 50;
 			}
@@ -345,11 +359,17 @@
 				white();
 				$('.caption').hide();
 				drawGame();
-			}, 7000);
+			}, wait);
 		}
 		else{
 			drawGame();
 			showMenu();
+		}
+		if(fin == true){
+			ctx.font = "50px Arial";
+			ctx.textAlign = "center";
+			ctx.fillText("Congratulations!", 250, 200)
+			ctx.fillText("You beat Level One!", 250, 280);
 		}
 		
 	},false);
@@ -362,6 +382,7 @@
 				playerCell.x -= 1;
 				gameMap[playerCell.x][playerCell.y].hasPlayer = true;
 			}
+			endLevel();
 			lastDirection = "w";
 		}
 		//The A key
@@ -371,6 +392,7 @@
 				playerCell.y -= 1;
 				gameMap[playerCell.x][playerCell.y].hasPlayer = true;
 			}
+			endLevel();
 			lastDirection = "a";
 		}
 		//The S key
@@ -380,6 +402,7 @@
 				playerCell.x += 1;
 				gameMap[playerCell.x][playerCell.y].hasPlayer = true;
 			}
+			endLevel();
 			lastDirection = "s";
 		}
 		//The D key
@@ -389,6 +412,7 @@
 				playerCell.y += 1;
 				gameMap[playerCell.x][playerCell.y].hasPlayer = true;
 			}
+			endLevel();
 			lastDirection = "d";
 		}
 		//The L key
@@ -397,17 +421,29 @@
 		}
 		//The M key
 		if(code == 109){
-			if(playerObject.hasBite){
-				bite();
+			if(playerObject.hasSmash){
+				smash();
 			}
 		}
 		//The Y Key
 		if(code == 121){
 			drawGame();
 		}
+
+		//The K key
+		if(code == 107){
+			bite();
+		}
+
 	}
 
-	function action(code){
+	function endLevel() {
+		if(gameMap[playerCell.x][playerCell.y].hasHole){
+			fin = true;
+		}
+	}
+
+	function action(){
 		if(lastDirection == "w"){
 			if(gameMap[playerCell.x-1][playerCell.y].hasChest == true){
 				gameMap[playerCell.x-1][playerCell.y].hasChest = false;
@@ -446,7 +482,7 @@
 		}
 	}
 
-	function bite(code) {
+	function smash() {
 		if(lastDirection == "w"){
 			if(gameMap[playerCell.x-1][playerCell.y].hasStone == true){
 				gameMap[playerCell.x-1][playerCell.y].hasStone = false;
@@ -477,13 +513,86 @@
 		}
 	}
 
-	function getBite(code){
-		if(playerObject.hasBite == false){
+	function bite() {
+		if(lastDirection == "w"){
+			if(playerObject.hasBite){
+				if(gameMap[playerCell.x-1][playerCell.y].hasTurkey == true){
+					gameMap[playerCell.x-1][playerCell.y].hasTurkey = false;
+					gameMap[playerCell.x-1][playerCell.y].isWalkable = true;
+					showMenu();
+				}
+			}
+			else if(gameMap[playerCell.x-1][playerCell.y].hasTurkey == true){
+				gameMap[playerCell.x+1][playerCell.y].hasPlayer = true;
+				gameMap[playerCell.x][playerCell.y].hasPlayer = false;
+				playerCell.x += 1;
+			}
+		}
+		if(lastDirection == "a"){
+			if(playerObject.hasBite){
+				if(gameMap[playerCell.x][playerCell.y-1].hasTurkey == true){
+					gameMap[playerCell.x][playerCell.y-1].hasTurkey = false;
+					gameMap[playerCell.x][playerCell.y-1].isWalkable = true;
+					showMenu();
+				}
+			}
+			else if(gameMap[playerCell.x][playerCell.y-1].hasTurkey == true){
+				gameMap[playerCell.x][playerCell.y].hasPlayer = false;
+				gameMap[playerCell.x][playerCell.y+1].hasPlayer = true;
+				playerCell.y += 1;
+
+			}
+		}
+		if(lastDirection == "s"){
+			if(playerObject.hasBite){
+				if(gameMap[playerCell.x+1][playerCell.y].hasTurkey == true){
+					gameMap[playerCell.x+1][playerCell.y].hasTurkey = false;
+					gameMap[playerCell.x+1][playerCell.y].isWalkable = true;
+					showMenu();
+				}
+			}
+			else if(gameMap[playerCell.x+1][playerCell.y].hasTurkey == true){
+				gameMap[playerCell.x][playerCell.y].hasPlayer = false;
+				gameMap[playerCell.x-1][playerCell.y].hasPlayer = true;
+				playerCell.x -=1;
+				
+			}
+		}
+		if(lastDirection == "d"){
+			if(playerObject.hasBite){
+				if(gameMap[playerCell.x][playerCell.y+1].hasTurkey == true){
+					gameMap[playerCell.x][playerCell.y+1].hasTurkey = false;
+					gameMap[playerCell.x][playerCell.y+1].isWalkable = true;
+					showMenu();
+				}
+			}
+			else if(gameMap[playerCell.x][playerCell.y+1].hasTurkey == true){
+				gameMap[playerCell.x][playerCell.y].hasPlayer = false;
+				gameMap[playerCell.x][playerCell.y-1].hasPlayer = true;
+				playerCell.y -= 1;
+				
+			}
+		}	
+	}
+
+	function getSmash(code){
+		if(playerObject.hasSmash == false){
 			if(playerObject.chestAmt == (playerObject.chestTotal-4)){
-				playerObject.hasBite = true;
+				playerObject.hasSmash = true;
 				setTimeout(function() {
 					alert("You've gotten strong! Now you can smash rocks to pieces!");
-				}, 7000)
+				}, wait)
+			}
+		}
+	}
+
+	function getBite() {
+		if(playerObject.hasBite == false){
+			if(playerObject.chestAmt == 0){
+				playerObject.hasBite = true;
+				setTimeout(function(){
+					alert("Who's a good boy? Not you! Now you can BITE!!!");
+				}, wait)
 			}
 		}
 	}
@@ -528,10 +637,14 @@
 	}
 
 	function showMenu() {
+		getSmash();
 		getBite();
 		var html = "<p>Chests left: " + playerObject.chestAmt + "</p><p>Press 'L' to open chests!</p>";
-		if(playerObject.hasBite){
+		if(playerObject.hasSmash){
 			html += "<p>Press 'M' to break apart rocks!</p>"
+		}
+		if(playerObject.hasBite){
+			html += "<p>Press 'K' to bite things!</p>"
 		}
 		document.getElementById('menu').innerHTML = html;
 	}
