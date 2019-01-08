@@ -1,0 +1,118 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <title></title>
+
+</head>
+
+<body>
+<canvas id="myCanvas" height="500" width="500"></canvas>
+<button id="btn">Go</button>
+
+
+</body>
+</html>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
+<script>
+	var canvas = document.getElementById('myCanvas');
+	var ctx = canvas.getContext('2d');
+
+	var dogSS = new Image();
+	dogSS.src = "./images/dogsprite.png";
+
+	var spriteL = 192;
+	var rows = 4;
+	var cols = 4;
+
+	var down = 0;
+	var left = 1;
+	var right = 2;
+	var up = 3;
+
+	var width = spriteL/cols;
+	var height = width;
+
+	var curFrame = 0;
+
+	var frameCount = 4;
+
+	var x = 0;
+	var y = 50;
+
+	var srcX = 0;
+	var srcY = 0;
+
+	var speed = 1;
+	var count;
+	var lD = "d";
+
+	function updateFrame() {
+		curFrame = (curFrame + 1) % frameCount;
+
+		srcX = curFrame * width;
+		ctx.clearRect(x,y,width,height);
+
+		if(lD == "s"){
+			srcY = down * height;
+			y+= speed;
+		}
+		if(lD == "a"){
+			srcY = left * height;
+			x-= speed;
+			x--;
+		}
+		if(lD == "d"){
+			srcY = right * height;
+			x+= speed;
+			x++;
+		}
+		if(lD == "w"){
+			srcY = up * height;
+			y-= speed;
+			y--;
+		}
+	};
+
+	function draw(){
+		updateFrame();
+		ctx.drawImage(dogSS, srcX, srcY, width, height, x, y, width, height);
+		count++;
+		if(count < 20){
+			go();
+		};
+	}
+	function go() {
+		setInterval(draw, 100);
+	}
+
+	$('#btn').click(function(){
+		count=0;
+		go();
+	})
+		
+
+
+// 	function animate(lD, dX, dY) {
+// 		if(lD == "w"){
+// 			ctx.drawImage(dogSS, 0, 144, 48, 48, dX-50, dY, 48, 48);
+// // 144,0 - 192,48
+// // 144,48 - 192,96
+// // 144,96 - 192,144
+// // 144,144 - 192,192
+
+// 		}
+// 		if(lD == "a"){
+			
+// 		}
+// 		if(lD == "s"){
+			
+// 		}
+// 		if(lD == "d"){
+			
+// 		}
+// 	}
+
+</script>

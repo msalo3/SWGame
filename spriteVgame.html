@@ -7,37 +7,6 @@
   <title></title>
 
   <style>
-  	body{
-  		background-color: #50ba89
-  	}
-  	.c1{
-  		float: left;
-  		width: 1000px;
-  	}
-  	.c2{
-  		float: right;
-  		width: 350px;
-  	}
-  	.caption{
-  		display: none;
-  		font-size: 30px;
-  		color: #29264E;
-  		margin-right: 80px;
-  		margin-top: 50px;
-  		padding: 25px;
-  		border-style: ridge;
-  		border-width: 15px;
-  		border-color: salmon;
-  		background-color: #f7b455;
-  		font-family: Arial, Helvetica, sans-serif;
-  	}
-  	#menu{
-  		font-size: 25px;
-  		color: #29264E;
-  		font-family: Arial, Helvetica, sans-serif;
-  		text-align: center;
-  		padding-right: 50px;
-  	}
   	button{
   		width: 300px;
   		color: #29264E;
@@ -45,27 +14,10 @@
   	}
   </style>
 </head>
-<body>
-<div class="c1">
-		<canvas id="myCanvas" height="1000" width="1000"></canvas>
-</div>
-<div class="c2">
-	<div class="menuArea">
-		<button onclick="main();">Start ('Y' to skip)</button><br>
-		<div id="menu"></div>
-	</div>
-	
-	<div class="caption" id="p1">Made me think of a picture taken with a broken camera lens.</div>
-	<div class="caption" id="p2">Super cool.<br> I want to believe there are actual cavemen still doing this!</div>
-	<div class="caption" id="p3">That's a dragon that will probably wake up one day!</div>
-	<div class="caption" id="p4">Arizona needs to bathe more...</div>
-	<div class="caption" id="p5">Those look like big Hershey kisses. Strangely unmelted in the desert.</div>
-	<div class="caption" id="p6">I see one... <br>no, I see two clowns.</div>
-	<div class="caption" id="p7">You finally caught an Omanyte! <br>Congrats!!</div>
-</div>
-
-
-
+<body onload="declareVars();">
+	<canvas id="myCanvas" height="1000" width="1000"></canvas>
+	<button onclick="main();">Start ('Y' to skip)</button><br>
+	<div id="menu"></div>
 </body>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
 <script type="text/javascript">
@@ -135,7 +87,6 @@
 	var gameMap = new Array(mapLength);
  	var playerCell = {};
  	var playerObject = {};
- 	var drawPoint = {};
  	var lastDirection;
  	var xMod;
  	var yMod;
@@ -243,39 +194,64 @@
 		};
   	};
 
+  	function viewMath() {
+		yMod = 0;
+		xMod = 0;
+		var bCorner = gameMap.length/4;
+		var tCorner = bCorner*3;
+		if(playerCell.x < bCorner){
+			xMod = bCorner - playerCell.x;
+		}
+		if(playerCell.x > tCorner){
+			xMod = tCorner - playerCell.x;
+		}
+		if(playerCell.y < bCorner){
+			yMod = bCorner - playerCell.y;
+		}
+		if(playerCell.y > tCorner){
+			yMod = tCorner - playerCell.y;
+		}
+		yMod += playerCell.y;
+		xMod += playerCell.x;
+	}
+
   	function drawB() {
   		ctx.drawImage(border, 0, 0);
   	}
 
+
+  	var aX;
+  	var aY;
 	function drawGame(){
 		timerOn = false;
 		viewMath();
 		ctx.clearRect(0,0,canvas.height,canvas.width);
+		var drawPoint = {};
 		drawPoint.x = 0;
 		drawPoint.y = 0;
+		viewL = 5;
 
-		for(var i=(xMod-(viewL/2)); i<(xMod+(viewL/2)); i++){
-			for(var j=(yMod-(viewL/2)); j<(yMod+(viewL/2)); j++){
+		for(var i=(xMod-viewL); i<(xMod+viewL); i++){
+			for(var j=(yMod-viewL); j<(yMod+viewL); j++){
+
 				var g = gameMap[i][j];
-				ctx.drawImage(grass, drawPoint.x, drawPoint.y);
-				if(g.hasPlayer){
-					ctx.drawImage(hero, drawPoint.x, drawPoint.y);
-				}	
-				if(g.hasChest){
-					ctx.drawImage(chest, drawPoint.x, drawPoint.y);
+
+				drawGrass(drawPoint.x, drawPoint.y);
+
+				if(move == true && g.hasPlayer== true){
+					aX = aX*50;
+					aY = aY*50;
+					go(lastDirection, aX, aY, g);
 				}
-				if(g.hasTree){
-					ctx.drawImage(tree, drawPoint.x, drawPoint.y);
+				else{
+					drawPlayer(drawPoint.x, drawPoint.y, g);
 				}
-				if(g.hasStone){
-					ctx.drawImage(stone, drawPoint.x, drawPoint.y);
-				}
-				if(g.hasTurkey){
-					ctx.drawImage(turkey, drawPoint.x, drawPoint.y);
-				}
-				if(g.hasHole){
-					ctx.drawImage(hole, drawPoint.x, drawPoint.y);
-				}
+				drawChest(drawPoint.x, drawPoint.y, g);
+				drawTree(drawPoint.x, drawPoint.y, g);
+				drawChest(drawPoint.x, drawPoint.y, g);
+				drawTurkey(drawPoint.x, drawPoint.y, g);
+				drawStone(drawPoint.x, drawPoint.y, g);
+				drawHole(drawPoint.x, drawPoint.y, g);
 				drawPoint.x += 50;
 			}
 			drawPoint.y += 50;
@@ -284,6 +260,127 @@
 		drawB();
 	};
 
+	function drawGrass(x,y){
+		ctx.drawImage(grass, x, y);
+	};
+	function drawPlayer(x, y, g){
+		if(g.hasPlayer){
+			ctx.drawImage(hero, x, y);
+		}
+	}
+	function drawTree(x, y, g){
+		if(g.hasTree){
+			ctx.drawImage(tree, x, y);
+		}
+	}
+	function drawStone(x, y, g){
+		if(g.hasStone){
+			ctx.drawImage(stone, x, y);
+		}
+	}
+	function drawHole(x, y, g){
+		if(g.hasHole){
+			ctx.drawImage(hole, x, y);
+		}
+	}
+	function drawTurkey(x, y, g){
+		if(g.hasTurkey){
+			ctx.drawImage(turkey, x, y);
+		}
+	}
+	function drawChest(x, y, g){
+		if(g.hasChest){
+			ctx.drawImage(chest, x, y);
+		}
+	}
+
+	function drawLots(x,y) {
+		var drawPoint = {};
+		drawPoint.x = 0;
+		drawPoint.y = 0;
+		viewL = 5;
+		
+		for(var i=0; i<(xMod+viewL); i++){
+			for(var j=(yMod-viewL); j<(yMod+viewL); j++){
+				var g = gameMap[i][j];
+				drawGrass(drawPoint.x, drawPoint.y);
+				ctx.drawImage(dogSS, srcX, srcY, width, width, x, y, width, width);
+				drawChest(drawPoint.x, drawPoint.y, g);
+				drawTree(drawPoint.x, drawPoint.y, g);
+				drawChest(drawPoint.x, drawPoint.y, g);
+				drawTurkey(drawPoint.x, drawPoint.y, g);
+				drawStone(drawPoint.x, drawPoint.y, g);
+				drawHole(drawPoint.x, drawPoint.y, g);
+				drawPoint.x += 50;
+			}
+			drawPoint.y += 50;
+			drawPoint.x = 0;
+		}
+		drawB();
+	};
+		
+	function draw(lastDirection, x, y){
+		updateFrame(lastDirection, x, y);
+		drawLots(x,y);
+		
+	}
+	function go(lastDirection, x, y) {
+		count = 0;
+		var yada;
+		while(count < 20){
+			yada = setInterval(function(){
+				draw(lastDirection, x, y);
+			}, 1000)
+			count++;
+			console.log(count);
+		}
+		move = false;
+		clearInterval(yada);
+	 	drawGame();
+	}
+	function declareVars(){
+		var down = 0;
+		var left = 1;
+		var right = 2;
+		var up = 3;
+
+		var curFrame = 0;
+		var frameCount = 4;
+
+		var srcX = 0;
+		var srcY = 0;
+		var width = 48;
+		var x = 0;
+		var y = 50;
+
+		var speed = 12;
+		var count;
+	};
+	
+
+	function updateFrame(lD, x, y) {
+		curFrame = (curFrame + 1) % frameCount;
+
+		srcX = curFrame * width;
+		ctx.clearRect(x,y,width,width);
+
+		if(lD == "s"){
+			srcY = down * width;
+			y+= speed;
+		}
+		if(lD == "a"){
+			srcY = left * width;
+			x-= speed;
+		}
+		if(lD == "d"){
+			srcY = right * width;
+			x+= speed;
+		}
+		if(lD == "w"){
+			srcY = up * width;
+			y-= speed;
+		}
+	};
 		// for(var i=0; i<10; i++){
 		// 	for(var j=0; j<10; j++){
 		// 		var g = gameMap[i][j];
@@ -334,26 +431,7 @@
 		// }
 	
 
-	function viewMath() {
-		yMod = 0;
-		xMod = 0;
-		var bCorner = gameMap.length/4;
-		var tCorner = bCorner*3;
-		if(playerCell.x < bCorner){
-			xMod = bCorner - playerCell.x;
-		}
-		if(playerCell.x > tCorner){
-			xMod = tCorner - playerCell.x;
-		}
-		if(playerCell.y < bCorner){
-			yMod = bCorner - playerCell.y;
-		}
-		if(playerCell.y > tCorner){
-			yMod = tCorner - playerCell.y;
-		}
-		yMod += playerCell.y;
-		xMod += playerCell.x;
-	}
+	
 
 	function white() {
 		ctx.fillStyle = "#FFFFFF";
@@ -389,45 +467,89 @@
 		ctx.fillText("You beat Level One!", 250, 280);
 	};
 
+		var update = function(code){
+		//The W key
+		if(code == 119){
+			walkUp();
+		}
+		//The A key
+		if(code == 97){
+			walkLeft();
+		}
+		//The S key
+		if(code == 115){
+			walkDown();
+		}
+		//The D key
+		if(code == 100){
+			walkRight();
+		}
+		endLevel();
+		//The L key
+		if(code == 108){
+			action();
+		}
+		//The M key
+		if(code == 109){
+			if(playerObject.hasSmash){
+				smash();
+			}
+		}
+		//The Y Key
+		if(code == 121){
+			drawGame();
+		}
+
+		//The K key
+		if(code == 107){
+			bite();
+		}
+
+	}
+
 
 	function walkUp() {
 		if(gameMap[playerCell.x-1][playerCell.y].isWalkable==true){
 			move = true;
 			gameMap[playerCell.x][playerCell.y].hasPlayer = false;
+			aX = playerCell.x;
+			aY = playerCell.y;
 			playerCell.x -= 1;
 			gameMap[playerCell.x][playerCell.y].hasPlayer = true;
 		}
-		endLevel();
 		lastDirection = "w";
 	}
 	function walkLeft(){
 		if(gameMap[playerCell.x][playerCell.y-1].isWalkable==true){
 			move = true;
 			gameMap[playerCell.x][playerCell.y].hasPlayer = false;
+			aX = playerCell.x;
+			aY = playerCell.y;
 			playerCell.y -= 1;
 			gameMap[playerCell.x][playerCell.y].hasPlayer = true;
 		}
-		endLevel();
 		lastDirection = "a";
 	}
 	function walkDown(){
 		if(gameMap[playerCell.x+1][playerCell.y].isWalkable==true){
 			move = true;
 			gameMap[playerCell.x][playerCell.y].hasPlayer = false;
+			aX = playerCell.x;
+			aY = playerCell.y;
 			playerCell.x += 1;
 			gameMap[playerCell.x][playerCell.y].hasPlayer = true;
 		}
-		endLevel();
 		lastDirection = "s";
 	}
 	function walkRight() {
 		if(gameMap[playerCell.x][playerCell.y+1].isWalkable==true){
 			move = true;
 			gameMap[playerCell.x][playerCell.y].hasPlayer = false;
+			aX = playerCell.x;
+			aY = playerCell.y;
 			playerCell.y += 1;
 			gameMap[playerCell.x][playerCell.y].hasPlayer = true;
 		}
-		endLevel();
 		lastDirection = "d";
 	}
 
@@ -439,7 +561,6 @@
 				gameMap[playerCell.x-1][playerCell.y].isWalkable = true;
 				playerObject.chestAmt --;
 				showMenu();
-				showPic();
 			}
 		}
 		if(lastDirection == "a"){
@@ -448,7 +569,6 @@
 				gameMap[playerCell.x][playerCell.y-1].isWalkable = true;
 				playerObject.chestAmt --;
 				showMenu();
-				showPic();
 			}
 		}
 		if(lastDirection == "s"){
@@ -457,7 +577,6 @@
 				gameMap[playerCell.x+1][playerCell.y].isWalkable = true;
 				playerObject.chestAmt --;
 				showMenu();
-				showPic();
 			}
 		}
 		if(lastDirection == "d"){
@@ -466,7 +585,6 @@
 				gameMap[playerCell.x][playerCell.y+1].isWalkable = true;
 				playerObject.chestAmt --;
 				showMenu();
-				showPic();
 			}
 		}
 	}
@@ -586,44 +704,7 @@
 		}
 	}
 
-	var update = function(code){
-		//The W key
-		if(code == 119){
-			walkUp();
-		}
-		//The A key
-		if(code == 97){
-			walkLeft();
-		}
-		//The S key
-		if(code == 115){
-			walkDown();
-		}
-		//The D key
-		if(code == 100){
-			walkRight();
-		}
-		//The L key
-		if(code == 108){
-			action();
-		}
-		//The M key
-		if(code == 109){
-			if(playerObject.hasSmash){
-				smash();
-			}
-		}
-		//The Y Key
-		if(code == 121){
-			drawGame();
-		}
 
-		//The K key
-		if(code == 107){
-			bite();
-		}
-
-	}
 
 
 	function endLevel() {
@@ -638,39 +719,6 @@
 		setUpGame(demoMap2);
 		drawGame();
 		showMenu();
-	}
-
-	function showPic() {
-		timerOn = true;
-		var p = playerObject.chestAmt;
-		if(p == 6){
-			$('#p1').show();
-			ctx.drawImage(lens, 0, 0);
-		}
-		if(p == 5){
-			$('#p2').show();
-			ctx.drawImage(cavemen, 0, 0);
-		}
-		if(p == 4){
-			$('#p3').show();
-			ctx.drawImage(dragon, 0, 0);
-		}
-		if(p == 3){
-			$('#p4').show();
-			ctx.drawImage(grimy, 0, 0);
-		}
-		if(p == 2){
-			$('#p5').show();
-			ctx.drawImage(nipples, 0, 0);
-		}
-		if(p == 1){
-			$('#p6').show();
-			ctx.drawImage(clowns, 0, 0);
-		}
-		if(p == 0){
-			$('#p7').show();
-			ctx.drawImage(you_found_omanyte, 0, 0);
-		}
 	}
 
 	function showMenu() {
